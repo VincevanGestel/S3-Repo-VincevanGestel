@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\spring-boot-rest-API",
+    "\\spring-boot-rest-API\\src",
+    "\\spring-boot-rest-API\\src\\main",
+    "\\spring-boot-rest-API\\src\\main\\java",
+    "\\spring-boot-rest-API\\src\\main\\java\\com",
+    "\\spring-boot-rest-API\\src\\main\\java\\com\\example",
+    "\\spring-boot-rest-API\\src\\main\\java\\com\\example\\spring_boot_rest_API",
+    "\\spring-boot-rest-API\\src\\main\\java\\com\\example\\spring_boot_rest_API\\controller",
+    "\\spring-boot-rest-API\\src\\main\\java\\com\\jts"
+  ],
+  "SelectedNode": "\\spring-boot-rest-API\\src\\main\\java\\com\\example\\spring_boot_rest_API\\controller\\ProductController.Java",
+  "PreviewInSolutionExplorer": false
+}
