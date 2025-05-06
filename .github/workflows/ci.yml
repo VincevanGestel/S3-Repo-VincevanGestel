@@ -28,20 +28,20 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: 'adoptopenjdk'  # Use AdoptOpenJDK, you can change this to 'zulu' or 'openjdk' based on your needs
 
-      # Step 3: Cache dependencies to speed up builds
+      # Step 3: Cache Maven dependencies (updated to v3)
       - name: Cache Maven dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Step 4: Build and test the project
+      # Step 4: Build with Maven
       - name: Build with Maven
         run: mvn clean install -DskipTests=false
 
-      # Step 5: Run tests (optional: if you want tests to run separately)
+      # Step 5: Run tests
       - name: Run tests
         run: mvn test
 
@@ -50,9 +50,9 @@ jobs:
       # - name: Deploy
       #   run: <deploy-command>
 
-      # Optional: Archive build artifacts, e.g., JAR files, for later use
+      # Step 6: Archive build artifacts (updated to v3)
       - name: Archive build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: spring-boot-artifacts
           path: target/*.jar
