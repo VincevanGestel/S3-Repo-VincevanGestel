@@ -37,10 +37,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Step 4: Build the project with Maven
+      # Step 4: Build the project with Maven in the correct directory
       - name: Build with Maven
+        working-directory: spring-boot-rest-API/spring-boot-rest-API  # Change working directory to where pom.xml is located
         run: mvn clean install --batch-mode -DskipTests=false
 
-      # Step 5: Run tests with Maven
+      # Step 5: Run tests with Maven in the correct directory
       - name: Run tests
+        working-directory: spring-boot-rest-API/spring-boot-rest-API  # Change working directory to where pom.xml is located
         run: mvn test
