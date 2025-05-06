@@ -12,11 +12,14 @@ jobs:
 
     defaults:
       run:
-        working-directory: spring-boot-rest-API  # Updated path to the correct location
+        working-directory: 'Main back-end branch/spring-boot-rest-API'  # Correct path
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: List files in the back-end directory
+        run: ls -alh 'Main back-end branch/spring-boot-rest-API'  # Verify files in the directory
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
