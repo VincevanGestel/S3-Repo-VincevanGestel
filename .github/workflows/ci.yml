@@ -25,14 +25,13 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
+          cache: maven
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - name: Verify Java version
+        run: java -version
+
+      - name: Verify Maven version
+        run: mvn -version
 
       - name: Build with Maven
         working-directory: "Main back-end branch/spring-boot-rest-API/spring-boot-rest-API"
