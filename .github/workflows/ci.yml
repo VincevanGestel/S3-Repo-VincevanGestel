@@ -3,10 +3,10 @@ name: Spring Boot CI
 on:
   push:
     branches:
-      - main  # Trigger on push to the main branch
+      - main
   pull_request:
     branches:
-      - main  # Trigger on pull request to the main branch
+      - main
 
 jobs:
   build:
@@ -14,35 +14,30 @@ jobs:
 
     strategy:
       matrix:
-        java-version: [11, 17]  # Matrix for different Java versions (11, 17)
+        java-version: [11, 17]
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v4  # Updated to v4 for the latest checkout action
+        uses: actions/checkout@v4
 
-      # Step 2: Set up Java (from the matrix, it will set Java 11 or 17)
       - name: Set up JDK
-        uses: actions/setup-java@v4  # Updated to v4 for the latest setup-java action
+        uses: actions/setup-java@v4
         with:
-          java-version: ${{ matrix.java-version }}  # Dynamic Java version from the matrix
-          distribution: 'temurin'  # You can also use 'zulu' or 'adopt'
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
 
-      # Step 3: Cache Maven dependencies (updated to v4)
       - name: Cache Maven dependencies
-        uses: actions/cache@v4  # Updated to v4 for the latest cache action
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Step 4: Build the project with Maven in the correct directory
       - name: Build with Maven
-        working-directory: spring-boot-rest-API/spring-boot-rest-API  # Change working directory to where pom.xml is located
+        working-directory: "Main back-end branch/spring-boot-rest-API/spring-boot-rest-API"
         run: mvn clean install --batch-mode -DskipTests=false
 
-      # Step 5: Run tests with Maven in the correct directory
       - name: Run tests
-        working-directory: spring-boot-rest-API/spring-boot-rest-API  # Change working directory to where pom.xml is located
+        working-directory: "Main back-end branch/spring-boot-rest-API/spring-boot-rest-API"
         run: mvn test
