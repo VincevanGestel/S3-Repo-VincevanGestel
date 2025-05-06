@@ -49,10 +49,3 @@ jobs:
       # Add your deployment steps here, e.g. deploying to AWS, Docker, etc.
       # - name: Deploy
       #   run: <deploy-command>
-
-      # Step 6: Archive build artifacts (updated to v3)
-      - name: Archive build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: spring-boot-artifacts
-          path: target/*.jar
