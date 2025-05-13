@@ -1,23 +1,29 @@
-# ------------ Build Stage ------------
-FROM maven:3.9.4-eclipse-temurin-17 AS build
+# --------- Build Stage ---------
+FROM node:18 AS build
+
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy Maven project files
-COPY pom.xml .
-COPY src ./src
+# Copy package.json and package-lock.json (or yarn.lock if using Yarn)
+COPY package*.json ./
 
-# Package the application (skip tests for faster builds)
-RUN mvn clean package -DskipTests
+# Install dependencies
+RUN npm install
 
-# ------------ Run Stage ------------
-FROM eclipse-temurin:17-jdk
-WORKDIR /app
+# Copy the rest of the source code
+COPY . .
 
-# Copy the built JAR file from the build stage
-COPY --from=build /app/target/spring-boot-rest-API-0.0.1-SNAPSHOT.jar app.jar
+# Run the build command (vite build)
+RUN npm run build
 
-# Expose port (default Spring Boot port)
-EXPOSE 8080
+# --------- Production Stage ---------
+FROM nginx:alpine
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Copy the build output from the build stage
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Expose port 80 to access the app
+EXPOSE 80
+
+# Run NGINX to serve the Vue app
+CMD ["nginx", "-g", "daemon off;"]
