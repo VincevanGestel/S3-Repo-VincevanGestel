@@ -3,9 +3,13 @@ import type { RouteRecordRaw } from 'vue-router';
 import ProductList from '@/components/ProductList.vue'; // Adjust the path as needed
 import CreateProduct from '@/components/CreateProduct.vue'; // Adjust the path as needed
 import CreateTag from '@/components/CreateTag.vue';
+import Login from '@/components/Login.vue';
+import Register from '@/components/Register.vue';
 
 // Explicitly typing the routes to ensure correct type-checking with TypeScript
 const routes: Array<RouteRecordRaw> = [
+  { path: '/login', component: Login },
+  { path: '/register', component: Register },
   {
     path: '/productlist',
     name: 'ProductList',
