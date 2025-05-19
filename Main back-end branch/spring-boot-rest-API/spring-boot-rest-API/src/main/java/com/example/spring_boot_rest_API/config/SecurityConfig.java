@@ -29,18 +29,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults()) // 👈 Enable CORS support
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(Customizer.withDefaults()) // Keep or remove if you want basic auth
+                .formLogin(form -> form.disable());    // Disable default form login
 
         return http.build();
     }
-//Avoiding CORS using this (ONLY DURING PRODUCTION)
+
+    //Avoiding CORS using this (ONLY DURING PRODUCTION)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
