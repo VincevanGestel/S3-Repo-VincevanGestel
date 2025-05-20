@@ -25,67 +25,64 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class ProductControllerIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private TagRepository tagRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private TagRepository tagRepository;
+    @Autowired private ProductRepository productRepository;
+    @Autowired private ObjectMapper objectMapper;
 
     private Long existingTagId;
 
-    @Autowired
-    private ProductRepository productRepository;
-
     @BeforeEach
     void setup() {
-        productRepository.deleteAll(); // Remove products first
-        tagRepository.deleteAll();     // Now it's safe to delete tags
+        productRepository.deleteAll();
+        tagRepository.deleteAll();
 
         Tag tag = new Tag("Electronics");
         tagRepository.save(tag);
         existingTagId = tag.getId();
     }
 
-    @Test
-    void testCreateAndFetchProduct() throws Exception {
+    private ProductDTO buildProductDTO(String name, double price) {
         ProductDTO dto = new ProductDTO();
-        dto.setName("Test Laptop");
-        dto.setPrice(1200.0);
-        dto.setDescription("A test product");
-        dto.setQuantity(3);
+        dto.setName(name);
+        dto.setPrice(price);
+        dto.setDescription("Sample description");
+        dto.setQuantity(5);
         dto.setTagIds(List.of(existingTagId));
+        return dto;
+    }
 
+    @Test
+    void shouldCreateProductSuccessfully() throws Exception {
+        ProductDTO dto = buildProductDTO("Test Laptop", 1200.0);
         String json = objectMapper.writeValueAsString(dto);
 
-        // Perform POST request
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test Laptop"))
                 .andExpect(jsonPath("$.price").value(1200.0));
-
-        // Perform GET request
-        mockMvc.perform(get("/api/products"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Test Laptop"));
     }
 
     @Test
-    void testGetProductById() throws Exception {
-        ProductDTO dto = new ProductDTO();
-        dto.setName("Phone");
-        dto.setPrice(699.99);
-        dto.setDescription("A test phone");
-        dto.setQuantity(10);
-        dto.setTagIds(List.of(existingTagId));
+    void shouldReturnProductInListAfterCreation() throws Exception {
+        ProductDTO dto = buildProductDTO("Phone", 699.0);
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk());
 
+        mockMvc.perform(get("/api/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Phone"));
+    }
+
+    @Test
+    void shouldFetchProductById() throws Exception {
+        ProductDTO dto = buildProductDTO("Phone", 699.99);
         String json = objectMapper.writeValueAsString(dto);
 
-        // Save product
         String response = mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
@@ -94,7 +91,6 @@ public class ProductControllerIntegrationTest {
 
         ProductDTO savedProduct = objectMapper.readValue(response, ProductDTO.class);
 
-        // Fetch by ID
         mockMvc.perform(get("/api/products/" + savedProduct.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Phone"))
@@ -102,15 +98,8 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    void testUpdateProduct() throws Exception {
-        // Create initial product
-        ProductDTO dto = new ProductDTO();
-        dto.setName("Monitor");
-        dto.setPrice(200.0);
-        dto.setDescription("Old description");
-        dto.setQuantity(5);
-        dto.setTagIds(List.of(existingTagId));
-
+    void shouldUpdateProductSuccessfully() throws Exception {
+        ProductDTO dto = buildProductDTO("Monitor", 200.0);
         String postJson = objectMapper.writeValueAsString(dto);
 
         String response = mockMvc.perform(post("/api/products")
@@ -121,7 +110,6 @@ public class ProductControllerIntegrationTest {
 
         ProductDTO saved = objectMapper.readValue(response, ProductDTO.class);
 
-        // Update it
         saved.setPrice(180.0);
         saved.setDescription("Updated description");
         String putJson = objectMapper.writeValueAsString(saved);
@@ -135,14 +123,8 @@ public class ProductControllerIntegrationTest {
     }
 
     @Test
-    void testDeleteProduct() throws Exception {
-        ProductDTO dto = new ProductDTO();
-        dto.setName("Tablet");
-        dto.setPrice(300.0);
-        dto.setDescription("To be deleted");
-        dto.setQuantity(2);
-        dto.setTagIds(List.of(existingTagId));
-
+    void shouldDeleteProductAndReturnNotFoundOnFetch() throws Exception {
+        ProductDTO dto = buildProductDTO("Tablet", 300.0);
         String json = objectMapper.writeValueAsString(dto);
 
         String response = mockMvc.perform(post("/api/products")
@@ -153,19 +135,57 @@ public class ProductControllerIntegrationTest {
 
         ProductDTO saved = objectMapper.readValue(response, ProductDTO.class);
 
-        // Delete
         mockMvc.perform(delete("/api/products/" + saved.getId()))
                 .andExpect(status().isNoContent());
 
-        // Try to fetch again
         mockMvc.perform(get("/api/products/" + saved.getId()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void testGetNonExistentProductReturns404() throws Exception {
+    void shouldReturn404ForNonExistentProduct() throws Exception {
         mockMvc.perform(get("/api/products/999999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldFailToCreateProductWithoutName() throws Exception {
+        ProductDTO dto = buildProductDTO(null, 100.0); // Missing name
+        String json = objectMapper.writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldFailToCreateProductWithNegativePrice() throws Exception {
+        ProductDTO dto = buildProductDTO("Invalid Product", -50.0);
+        String json = objectMapper.writeValueAsString(dto);
+
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldAssociateTagsWithProduct() throws Exception {
+        ProductDTO dto = buildProductDTO("Tagged Product", 250.0);
+        String json = objectMapper.writeValueAsString(dto);
+
+        String response = mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        ProductDTO saved = objectMapper.readValue(response, ProductDTO.class);
+
+        mockMvc.perform(get("/api/products/" + saved.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tagIds[0]").value(existingTagId));
     }
 
 }

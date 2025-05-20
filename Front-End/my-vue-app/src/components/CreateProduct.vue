@@ -44,22 +44,19 @@ export default {
   },
   methods: {
     createProduct() {
-      const productToCreate = {
-        ...this.newProduct,
-        tagIds: this.selectedTagIds,
-      };
+  const productToCreate = {
+    ...this.newProduct,
+    tagIds: this.selectedTagIds.map(Number), // ✅ convert to numbers
+  };
 
-      console.log("Sending product:", productToCreate);
-
-      createProduct(productToCreate)
-        .then((createdProduct) => {
-          console.log("Product created:", createdProduct);
-          this.$router.push('/'); // Redirect to product list
-        })
-        .catch((error) => {
-          console.error("Error creating product:", error);
-        });
-    },
+  createProduct(productToCreate)
+    .then((createdProduct) => {
+      this.$router.push('/');
+    })
+    .catch((error) => {
+      console.error("Error creating product:", error);
+    });
+},
     fetchTags() {
       getAllTags()
         .then((tags) => {

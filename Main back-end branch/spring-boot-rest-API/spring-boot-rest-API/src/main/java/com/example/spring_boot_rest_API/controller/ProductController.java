@@ -2,6 +2,7 @@ package com.example.spring_boot_rest_API.controller;
 
 import com.example.spring_boot_rest_API.service.ProductService;
 import com.example.spring_boot_rest_API.dto.ProductDTO;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class ProductController
     }
 
     @PostMapping("/products")  // ✅ FIXED typo here
-    public ResponseEntity<ProductDTO> saveProduct(@RequestBody ProductDTO productDto)
+    public ResponseEntity<ProductDTO> saveProduct(@Valid @RequestBody ProductDTO productDto)
     {
         return ResponseEntity.ok(productService.saveProduct(productDto));
     }
