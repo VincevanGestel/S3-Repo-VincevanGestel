@@ -13,7 +13,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
+        working-directory: 'Main back-end branch/spring-boot-rest-API/spring-boot-rest-API'
 
     steps:
       - name: Checkout code
