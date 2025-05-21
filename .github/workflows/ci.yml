@@ -25,14 +25,14 @@ jobs:
 
       - name: Wait for MySQL to initialize
         run: |
-          echo "Waiting for MySQL..."
+          echo "Waiting for MySQL to be ready..."
           until docker exec $(docker ps -qf "name=mysql") mysqladmin ping -h"mysql" --silent; do
             sleep 2
           done
 
-      - name: Run Tests Inside Container
-        run: docker exec $(docker ps -qf "name=backend") ./mvnw test
+      - name: Run Tests Inside Backend Container
+        run: docker exec $(docker ps -qf "name=backend") mvn test
 
       - name: Tear down
         if: always()
-        run: docker-compose down
+        run: docker-compose down --remove-orphans
