@@ -1,0 +1,40 @@
+services:
+  backend:
+    build:
+      context: ./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mydb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Kroosirhig2
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: mydb
+      MYSQL_ROOT_PASSWORD: Kroosirhig2
+    ports:
+      - "3307:3306"
+    networks:
+      - app-network
+
+  # Optional for later:
+  # frontend:
+  #   build:
+  #     context: ./Front-End/my-vue-app
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - app-network
+
+networks:
+  app-network:
+    driver: bridge
