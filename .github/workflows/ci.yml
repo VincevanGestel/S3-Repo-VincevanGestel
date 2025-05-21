@@ -20,26 +20,25 @@ jobs:
       - name: Set up Docker Compose
         run: sudo apt-get update && sudo apt-get install docker-compose -y
 
-      - name: Make mvnw executable
-        run: chmod +x ./mvnw
-        working-directory: ./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
+      - name: Fix executable permission for mvnw
+        run: chmod +x "./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
 
       - name: Build and Run Containers
         run: docker-compose up -d --build
-        working-directory: ./
+
+      - name: Show backend logs for debugging (if it fails)
+        run: docker logs backend || true
 
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be ready..."
-          until docker exec s3-repo-vincevangestel_mysql_1 mysqladmin ping -h"localhost" --silent; do
+          until docker exec backend mysqladmin ping -h"mysql" --silent; do
             sleep 2
           done
 
       - name: Run tests inside backend container
-        run: docker exec s3-repo-vincevangestel_backend_1 ./mvnw test
-        working-directory: ./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
+        run: docker exec backend ./mvnw test
 
       - name: Tear down
         if: always()
         run: docker-compose down --remove-orphans
-        working-directory: ./
