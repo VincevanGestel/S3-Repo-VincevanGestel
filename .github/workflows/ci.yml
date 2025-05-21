@@ -24,6 +24,9 @@ jobs:
         run: docker-compose up -d --build
         working-directory: ./  # Adjust if docker-compose.yml is elsewhere
 
+      - name: List running containers
+        run: docker ps --format '{{.Names}}'
+
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be ready..."
