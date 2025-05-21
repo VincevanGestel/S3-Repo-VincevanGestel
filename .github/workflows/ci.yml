@@ -20,19 +20,23 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      - name: Run tests locally on runner
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
         working-directory: ./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
+
+      - name: Run tests locally on runner
         run: ./mvnw test
+        working-directory: ./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Optional: Check if docker compose is available
-      - name: Check Docker Compose version
-        run: docker compose version
+      - name: Set up Docker Compose
+        run: sudo apt-get update && sudo apt-get install docker-compose -y
 
       - name: Build and Run Containers
-        run: docker compose -f docker-compose.yml up -d --build
+        run: docker-compose up -d --build
+        working-directory: ./ # Adjust if docker-compose.yml is in a subdirectory
 
       - name: Wait for MySQL to be ready
         run: |
@@ -43,4 +47,5 @@ jobs:
 
       - name: Tear down
         if: always()
-        run: docker compose -f docker-compose.yml down --remove-orphans
+        run: docker-compose down --remove-orphans
+        working-directory: ./ # Adjust if needed
