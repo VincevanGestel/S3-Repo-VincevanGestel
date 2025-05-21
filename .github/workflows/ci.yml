@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  docker-build-test:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,24 +23,28 @@ jobs:
       - name: Fix executable permission for mvnw
         run: chmod +x "./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
 
-      - name: Build and Run Containers
-        run: docker-compose up -d --build
+      # Start only MySQL service (no backend container)
+      - name: Start MySQL container
+        run: docker-compose up -d mysql
 
-      - name: Install mysql-client in backend
-        run: docker exec backend apt-get update && docker exec backend apt-get install -y default-mysql-client
-
-      - name: Show backend logs for debugging (if it fails)
-        run: docker logs backend || true
-
+      # Wait for MySQL to be ready
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be ready..."
-          until docker exec backend mysqladmin ping -h"mysql" --silent; do
+          until docker exec $(docker ps -qf "name=mysql") mysqladmin ping -h "localhost" --silent; do
             sleep 2
           done
 
-      - name: Run tests inside backend container
-        run: docker exec backend ./mvnw test
+      # Run tests locally on GitHub runner using Maven wrapper, connecting to MySQL in container via localhost:3306
+      - name: Run tests on GitHub runner
+        run: |
+          # Export environment variables if your app requires it to connect to DB, e.g.
+          export SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/s3localdb
+          export SPRING_DATASOURCE_USERNAME=root
+          export SPRING_DATASOURCE_PASSWORD=root
+
+          cd "./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API"
+          ./mvnw test
 
       - name: Tear down
         if: always()
