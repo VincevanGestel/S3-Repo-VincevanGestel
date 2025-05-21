@@ -20,11 +20,11 @@ services:
       MYSQL_DATABASE: mydb
       MYSQL_ROOT_PASSWORD: Kroosirhig2
     ports:
-      - "3307:3306"
+      - "3307:3306"  # Avoid conflict with local MySQL
     networks:
       - app-network
 
-  # Optional for later:
+        # for later:
   # frontend:
   #   build:
   #     context: ./Front-End/my-vue-app
