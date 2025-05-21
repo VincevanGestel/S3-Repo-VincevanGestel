@@ -1,7 +1,7 @@
 services:
   backend:
     build:
-      context: ./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
+      context: ./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API
     ports:
       - "8080:8080"
     depends_on:
