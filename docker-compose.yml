@@ -13,12 +13,12 @@ services:
 
   backend:
     build:
-      context: "./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API"
+      context: "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
     container_name: backend
     command: ./mvnw spring-boot:run
     working_dir: /app
     volumes:
-      - "./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API:/app"
+      - "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API:/app"
     ports:
       - "8080:8080"
     depends_on:
