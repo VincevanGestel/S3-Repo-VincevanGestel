@@ -20,7 +20,7 @@ services:
       MYSQL_DATABASE: mydb
       MYSQL_ROOT_PASSWORD: Kroosirhig2
     ports:
-      - "3306:3306"
+      - "3307:3306"
     networks:
       - app-network
 
