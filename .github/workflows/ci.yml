@@ -21,16 +21,18 @@ jobs:
           java-version: 17
 
       - name: Run tests locally on runner
+        working-directory: ./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
         run: ./mvnw test
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Set up Docker Compose
-        run: sudo apt-get update && sudo apt-get install docker-compose -y
+      # Optional: Check if docker compose is available
+      - name: Check Docker Compose version
+        run: docker compose version
 
       - name: Build and Run Containers
-        run: docker-compose up -d --build
+        run: docker compose -f docker-compose.yml up -d --build
 
       - name: Wait for MySQL to be ready
         run: |
@@ -41,5 +43,4 @@ jobs:
 
       - name: Tear down
         if: always()
-        run: docker-compose down --remove-orphans
-
+        run: docker compose -f docker-compose.yml down --remove-orphans
