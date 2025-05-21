@@ -2,6 +2,7 @@ services:
   backend:
     build:
       context: ./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     depends_on:
@@ -12,6 +13,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: Kroosirhig2
     networks:
       - app-network
+    command: ["./mvnw", "spring-boot:run"]  # Run the app using mvnw inside container
 
   mysql:
     image: mysql:8.0
@@ -20,20 +22,20 @@ services:
       MYSQL_DATABASE: mydb
       MYSQL_ROOT_PASSWORD: Kroosirhig2
     ports:
-      - "3307:3306"  # Avoid conflict with local MySQL
+      - "3307:3306"
     networks:
       - app-network
 
-        # for later:
-  # frontend:
-  #   build:
-  #     context: ./Front-End/my-vue-app
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - app-network
+# Uncomment and configure if frontend is added later
+# frontend:
+#   build:
+#     context: ./Front-End/my-vue-app
+#   ports:
+#     - "80:80"
+#   depends_on:
+#     - backend
+#   networks:
+#     - app-network
 
 networks:
   app-network:
