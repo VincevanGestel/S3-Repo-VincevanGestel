@@ -22,7 +22,7 @@ jobs:
 
       - name: Build and Run Containers
         run: docker-compose up -d --build
-        working-directory: ./ # Adjust if docker-compose.yml is in a subdirectory
+        working-directory: ./  # Adjust if docker-compose.yml is elsewhere
 
       - name: Wait for MySQL to be ready
         run: |
@@ -37,4 +37,4 @@ jobs:
       - name: Tear down
         if: always()
         run: docker-compose down --remove-orphans
-        working-directory: ./ # Adjust if needed
+        working-directory: ./
