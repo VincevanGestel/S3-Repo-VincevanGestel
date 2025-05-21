@@ -1,29 +1,20 @@
-# === Stage 1: Build the application ===
-FROM maven:3.9.4-eclipse-temurin-17 AS build
+# Use Maven + JDK image so we have mvnw and Java together
+FROM maven:3.9.4-eclipse-temurin-17
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy the pom.xml and download dependencies first (uses Docker cache efficiently)
-COPY pom.xml .
+# Copy everything including mvnw, pom.xml, src/
+COPY . .
 
-# Copy the rest of the source code
-COPY src ./src
+# Make mvnw executable
+RUN chmod +x mvnw
 
-# Package the application (skip tests for faster build, remove `-DskipTests` to include them)
-RUN mvn clean package -DskipTests
+# Optionally pre-build (can skip tests here or run tests in CI)
+RUN ./mvnw clean package -DskipTests
 
-# === Stage 2: Run the application ===
-FROM eclipse-temurin:17-jdk
-
-# Set the working directory
-WORKDIR /app
-
-# Copy the packaged JAR from the build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Expose the port your Spring Boot app runs on (adjust if needed)
+# Expose port your Spring Boot app runs on
 EXPOSE 8080
 
-# Run the JAR
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Default command: run the Spring Boot app via mvnw
+CMD ["./mvnw", "spring-boot:run"]
