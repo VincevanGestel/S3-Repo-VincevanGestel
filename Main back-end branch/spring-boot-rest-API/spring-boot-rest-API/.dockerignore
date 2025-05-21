@@ -1,7 +1,6 @@
 target/
 *.log
 *.iml
-.mvn/
 .idea/
 .vscode/
 .DS_Store
