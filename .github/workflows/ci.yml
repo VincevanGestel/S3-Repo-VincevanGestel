@@ -26,6 +26,9 @@ jobs:
       - name: Build and Run Containers
         run: docker-compose up -d --build
 
+      - name: Install mysql-client in backend
+        run: docker exec backend apt-get update && docker exec backend apt-get install -y default-mysql-client
+
       - name: Show backend logs for debugging (if it fails)
         run: docker logs backend || true
 
