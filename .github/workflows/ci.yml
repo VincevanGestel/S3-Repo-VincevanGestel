@@ -21,7 +21,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install docker-compose -y
 
       - name: Fix executable permission for mvnw
-        run: chmod +x "./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
+        run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
 
       # Start only MySQL service (no backend container)
       - name: Start MySQL container
@@ -43,7 +43,7 @@ jobs:
           export SPRING_DATASOURCE_USERNAME=root
           export SPRING_DATASOURCE_PASSWORD=root
 
-          cd "./Main back-end branch/spring-boot-rest-API/spring-boot-rest-API"
+          cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw test
 
       - name: Tear down
