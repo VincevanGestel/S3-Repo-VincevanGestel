@@ -22,20 +22,20 @@ jobs:
 
       - name: Build and Run Containers
         run: docker-compose up -d --build
-        working-directory: ./  # Adjust if docker-compose.yml is elsewhere
+        working-directory: ./
 
-      - name: List running containers
+      - name: List running containers for debugging
         run: docker ps --format '{{.Names}}'
 
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be ready..."
-          until docker exec $(docker ps -qf "name=mysql") mysqladmin ping -h"mysql" --silent; do
+          until docker exec s3-repo-vincevangestel_mysql_1 mysqladmin ping -h"mysql" --silent; do
             sleep 2
           done
 
       - name: Run tests inside backend container
-        run: docker exec $(docker ps -qf "name=backend") ./mvnw test
+        run: docker exec s3-repo-vincevangestel_backend_1 ./mvnw test
 
       - name: Tear down
         if: always()
