@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
@@ -20,31 +20,29 @@ jobs:
       - name: Set up Docker Compose
         run: sudo apt-get update && sudo apt-get install docker-compose -y
 
-      - name: Fix executable permission for mvnw
+      - name: Make mvnw executable
         run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
 
-      # Start only MySQL service (no backend container)
       - name: Start MySQL container
         run: docker-compose up -d mysql
 
-      # Wait for MySQL to be ready
       - name: Wait for MySQL to be ready
         run: |
-          echo "Waiting for MySQL to be ready..."
+          echo "Waiting for MySQL..."
           until docker exec $(docker ps -qf "name=mysql") mysqladmin ping -h "localhost" --silent; do
             sleep 2
           done
 
-      # Run tests locally on GitHub runner using Maven wrapper, connecting to MySQL in container via localhost:3306
-      - name: Run tests on GitHub runner
+      - name: Run tests
         run: |
-          # Export environment variables if your app requires it to connect to DB, e.g.
-          export SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/s3localdb
+          export SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/s3localdb
           export SPRING_DATASOURCE_USERNAME=root
           export SPRING_DATASOURCE_PASSWORD=root
-
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw test
+
+      - name: Build Docker image
+        run: docker build -t spring-boot-rest-api "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
 
       - name: Tear down
         if: always()
