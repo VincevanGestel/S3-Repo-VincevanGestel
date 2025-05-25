@@ -10,7 +10,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    steps:
+    steps:            
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -20,6 +20,24 @@ jobs:
       - name: Set up Docker Compose
         run: sudo apt-get update && sudo apt-get install docker-compose -y
 
+      - name: Build Docker images via Compose
+        run: docker-compose build
+
+      - name: Start backend and MySQL services
+        run: docker-compose up -d
+
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL to accept connections..."
+          for i in {1..30}; do
+            if docker exec backend bash -c "nc -z mysql 3306"; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting..."
+            sleep 2
+          done
+
       - name: Make mvnw executable
         run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
 
@@ -28,9 +46,7 @@ jobs:
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw clean test
 
-      - name: Build Docker image
-        run: docker build -t spring-boot-rest-api "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
-
-      - name: Tear down
+      - name: Tear down services
         if: always()
         run: docker-compose down --remove-orphans
+
