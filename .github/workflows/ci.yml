@@ -23,21 +23,8 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
 
-      - name: Start MySQL container
-        run: docker-compose up -d mysql
-
-      - name: Wait for MySQL to be ready
+      - name: Run tests with H2 (in-memory DB)
         run: |
-          echo "Waiting for MySQL..."
-          until docker exec $(docker ps -qf "name=mysql") mysqladmin ping -h "localhost" --silent; do
-            sleep 2
-          done
-
-      - name: Run tests
-        run: |
-          export SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/s3localdb
-          export SPRING_DATASOURCE_USERNAME=root
-          export SPRING_DATASOURCE_PASSWORD=root
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw clean test
 
