@@ -39,7 +39,7 @@ jobs:
           export SPRING_DATASOURCE_USERNAME=root
           export SPRING_DATASOURCE_PASSWORD=root
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
-          ./mvnw test
+          ./mvnw clean test
 
       - name: Build Docker image
         run: docker build -t spring-boot-rest-api "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
