@@ -1,4 +1,4 @@
-name: CI with Docker
+name: CI with Docker Compose
 
 on:
   push:
@@ -20,17 +20,29 @@ jobs:
       - name: Set up Docker Compose
         run: sudo apt-get update && sudo apt-get install docker-compose -y
 
-      - name: Make mvnw executable
-        run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
+      - name: Build Docker images via Compose
+        run: docker-compose build
 
-      - name: Run tests with H2 (in-memory DB)
+      - name: Start backend and MySQL services
+        run: docker-compose up -d
+
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL to accept connections..."
+          for i in {1..30}; do
+            if docker exec backend bash -c "nc -z mysql 3306"; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting..."
+            sleep 2
+          done
+
+      - name: Run tests with H2 (in-memory DB) #might want to change to real DB tests here
         run: |
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw clean test
 
-      - name: Build Docker image
-        run: docker build -t spring-boot-rest-api "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
-
-      - name: Tear down
+      - name: Tear down services
         if: always()
         run: docker-compose down --remove-orphans
