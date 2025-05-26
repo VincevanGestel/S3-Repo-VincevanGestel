@@ -1,4 +1,4 @@
-name: Spring Boot CI
+name: CI with Docker
 
 on:
   push:
@@ -7,40 +7,46 @@ on:
     branches: [main]
 
 jobs:
-  build-java-17:
-    name: Build with Java 17
+  build-and-test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: Main back-end branch/spring-boot-rest-API/spring-boot-rest-API
-
-    steps:
-      - name: Checkout code
+    steps:            
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'temurin'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Verify Java version
-        run: java -version
+      - name: Set up Docker Compose
+        run: sudo apt-get update && sudo apt-get install docker-compose -y
 
-      - name: Verify Maven version
-        run: mvn -version
+      - name: Build Docker images via Compose
+        run: docker-compose build
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - name: Start backend and MySQL services
+        run: docker-compose up -d
 
-      - name: Build with Maven
-        run: mvn clean install --batch-mode -DskipTests=false
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL to accept connections..."
+          for i in {1..30}; do
+            if docker exec backend bash -c "nc -z mysql 3306"; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting..."
+            sleep 2
+          done
 
-      - name: Run tests
-        run: mvn test
+      - name: Make mvnw executable
+        run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
+
+      - name: Run tests with H2 (in-memory DB)
+        run: |
+          cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
+          ./mvnw clean test
+
+      - name: Tear down services
+        if: always()
+        run: docker-compose down --remove-orphans
+
