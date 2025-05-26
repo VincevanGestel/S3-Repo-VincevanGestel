@@ -2,6 +2,7 @@ package com.example.spring_boot_rest_API.service;
 
 import com.example.spring_boot_rest_API.dto.ProductDTO;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,12 +15,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class NotificationService {
 
     private final RestTemplate restTemplate;
-    private final Queue<ProductDTO> retryQueue = new ConcurrentLinkedQueue<>();
     private final NotificationService self; // proxy to enable async self-calls
+    private final Queue<ProductDTO> retryQueue = new ConcurrentLinkedQueue<>();
 
-    public NotificationService(RestTemplate restTemplate, ApplicationContext context) {
+    public NotificationService(RestTemplate restTemplate, @Lazy NotificationService self) {
         this.restTemplate = restTemplate;
-        this.self = context.getBean(NotificationService.class); // get proxy for async
+        this.self = self; // injected proxy bean
     }
 
     @Async
@@ -44,3 +45,4 @@ public class NotificationService {
         }
     }
 }
+
