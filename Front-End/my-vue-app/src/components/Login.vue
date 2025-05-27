@@ -30,20 +30,20 @@ export default defineComponent({
     const login = async () => {
       try {
         const response = await axios.post(
-          'http://localhost:8080/login',
-          new URLSearchParams({
+          'http://localhost:8080/api/auth/login',
+          {
             username: username.value,
             password: password.value,
-          }),
+          },
           {
-            withCredentials: true,
             headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
+              'Content-Type': 'application/json',
             },
+            withCredentials: true,
           }
         );
 
-        console.log('Login successful:', response);
+        console.log('Login successful:', response.data.message);
         errorMessage.value = '';
         router.push('/'); // redirect to home
       } catch (error: any) {
