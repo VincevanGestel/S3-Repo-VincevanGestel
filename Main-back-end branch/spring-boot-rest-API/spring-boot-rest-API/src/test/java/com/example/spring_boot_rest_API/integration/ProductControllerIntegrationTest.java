@@ -1,9 +1,13 @@
-package com.example.spring_boot_rest_API.intergration;
+package com.example.spring_boot_rest_API.integration;
 
 import com.example.spring_boot_rest_API.dto.ProductDTO;
+import com.example.spring_boot_rest_API.model.Role;
 import com.example.spring_boot_rest_API.model.Tag;
+import com.example.spring_boot_rest_API.model.User;
 import com.example.spring_boot_rest_API.repository.ProductRepository;
+import com.example.spring_boot_rest_API.repository.RoleRepository;
 import com.example.spring_boot_rest_API.repository.TagRepository;
+import com.example.spring_boot_rest_API.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,12 +16,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles; 
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Set;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -29,18 +36,36 @@ public class ProductControllerIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private TagRepository tagRepository;
     @Autowired private ProductRepository productRepository;
+    @Autowired private RoleRepository roleRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private ObjectMapper objectMapper;
 
     private Long existingTagId;
+
+    private static final String TEST_USERNAME = "testuser";
+    private static final String TEST_PASSWORD = "testpass";
 
     @BeforeEach
     void setup() {
         productRepository.deleteAll();
         tagRepository.deleteAll();
+        userRepository.deleteAll();
+        roleRepository.deleteAll();
 
         Tag tag = new Tag("Electronics");
         tagRepository.save(tag);
         existingTagId = tag.getId();
+
+        Role role = new Role();
+        role.setName("USER");
+        roleRepository.save(role);
+
+        User user = new User();
+        user.setUsername(TEST_USERNAME);
+        user.setPassword(passwordEncoder.encode(TEST_PASSWORD));
+        user.setRoles(Set.of(role));
+        userRepository.save(user);
     }
 
     private ProductDTO buildProductDTO(String name, double price) {
@@ -59,6 +84,7 @@ public class ProductControllerIntegrationTest {
         String json = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(post("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -70,11 +96,13 @@ public class ProductControllerIntegrationTest {
     void shouldReturnProductInListAfterCreation() throws Exception {
         ProductDTO dto = buildProductDTO("Phone", 699.0);
         mockMvc.perform(post("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/products"))
+        mockMvc.perform(get("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Phone"));
     }
@@ -85,6 +113,7 @@ public class ProductControllerIntegrationTest {
         String json = objectMapper.writeValueAsString(dto);
 
         String response = mockMvc.perform(post("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -92,7 +121,8 @@ public class ProductControllerIntegrationTest {
 
         ProductDTO savedProduct = objectMapper.readValue(response, ProductDTO.class);
 
-        mockMvc.perform(get("/api/products/" + savedProduct.getId()))
+        mockMvc.perform(get("/api/products/" + savedProduct.getId())
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Phone"))
                 .andExpect(jsonPath("$.price").value(699.99));
@@ -104,6 +134,7 @@ public class ProductControllerIntegrationTest {
         String postJson = objectMapper.writeValueAsString(dto);
 
         String response = mockMvc.perform(post("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(postJson))
                 .andExpect(status().isOk())
@@ -116,6 +147,7 @@ public class ProductControllerIntegrationTest {
         String putJson = objectMapper.writeValueAsString(saved);
 
         mockMvc.perform(put("/api/products/" + saved.getId())
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(putJson))
                 .andExpect(status().isOk())
@@ -129,6 +161,7 @@ public class ProductControllerIntegrationTest {
         String json = objectMapper.writeValueAsString(dto);
 
         String response = mockMvc.perform(post("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -136,16 +169,19 @@ public class ProductControllerIntegrationTest {
 
         ProductDTO saved = objectMapper.readValue(response, ProductDTO.class);
 
-        mockMvc.perform(delete("/api/products/" + saved.getId()))
+        mockMvc.perform(delete("/api/products/" + saved.getId())
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/products/" + saved.getId()))
+        mockMvc.perform(get("/api/products/" + saved.getId())
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturn404ForNonExistentProduct() throws Exception {
-        mockMvc.perform(get("/api/products/999999"))
+        mockMvc.perform(get("/api/products/999999")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isNotFound());
     }
 
@@ -155,6 +191,7 @@ public class ProductControllerIntegrationTest {
         String json = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(post("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest());
@@ -166,6 +203,7 @@ public class ProductControllerIntegrationTest {
         String json = objectMapper.writeValueAsString(dto);
 
         mockMvc.perform(post("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest());
@@ -177,6 +215,7 @@ public class ProductControllerIntegrationTest {
         String json = objectMapper.writeValueAsString(dto);
 
         String response = mockMvc.perform(post("/api/products")
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -184,9 +223,9 @@ public class ProductControllerIntegrationTest {
 
         ProductDTO saved = objectMapper.readValue(response, ProductDTO.class);
 
-        mockMvc.perform(get("/api/products/" + saved.getId()))
+        mockMvc.perform(get("/api/products/" + saved.getId())
+                        .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tagIds[0]").value(existingTagId));
     }
-
 }
