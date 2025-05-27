@@ -28,6 +28,9 @@ public class ProductServiceTest {
     @Mock
     private TagRepository tagRepository;
 
+    @Mock
+    private NotificationService notificationService; // ✅ Added mock for the missing dependency
+
     @InjectMocks
     private ProductService productService;
 
@@ -75,6 +78,7 @@ public class ProductServiceTest {
 
         verify(tagRepository).findAllById(tagIds);
         verify(productRepository).save(any(Product.class));
+        verify(notificationService).notifyProduct(saved); // ✅ Added verification
     }
 
     @Test
