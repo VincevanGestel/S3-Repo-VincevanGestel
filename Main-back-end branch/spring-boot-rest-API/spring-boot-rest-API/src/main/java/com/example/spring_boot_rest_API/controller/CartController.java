@@ -43,4 +43,12 @@ public class CartController {
         cartService.clearCart(principal.getName());
         return ResponseEntity.ok("Cart cleared");
     }
+
+    @PutMapping("/update")
+    public ResponseEntity<String> updateProductQuantity(@RequestParam Long productId,
+                                                        @RequestParam int quantity,
+                                                        Principal principal) {
+        cartService.updateProductQuantity(principal.getName(), productId, quantity);
+        return ResponseEntity.ok("Product quantity updated");
+    }
 }

@@ -2,8 +2,15 @@ package com.example.spring_boot_rest_API.service;
 
 import com.example.spring_boot_rest_API.dto.CartDTO;
 import com.example.spring_boot_rest_API.dto.CartItemDTO;
-import com.example.spring_boot_rest_API.model.*;
-import com.example.spring_boot_rest_API.repository.*;
+import com.example.spring_boot_rest_API.dto.ProductDTO;
+import com.example.spring_boot_rest_API.model.Cart;
+import com.example.spring_boot_rest_API.model.CartItem;
+import com.example.spring_boot_rest_API.model.Product;
+import com.example.spring_boot_rest_API.model.User;
+import com.example.spring_boot_rest_API.repository.CartItemRepository;
+import com.example.spring_boot_rest_API.repository.CartRepository;
+import com.example.spring_boot_rest_API.repository.ProductRepository;
+import com.example.spring_boot_rest_API.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,9 +50,15 @@ public class CartService {
 
         List<CartItemDTO> itemDTOs = cart.getItems().stream().map(item -> {
             CartItemDTO dto = new CartItemDTO();
-            dto.setProductId(item.getProduct().getId());
-            dto.setProductName(item.getProduct().getName());
-            dto.setProductPrice(item.getProduct().getPrice());
+
+            // Create ProductDTO from Product entity
+            Product product = item.getProduct();
+            ProductDTO productDTO = new ProductDTO();
+            productDTO.setId(product.getId());
+            productDTO.setName(product.getName());
+            productDTO.setPrice(product.getPrice());
+
+            dto.setProduct(productDTO);
             dto.setQuantity(item.getQuantity());
             return dto;
         }).collect(Collectors.toList());
@@ -90,4 +103,26 @@ public class CartService {
         cart.getItems().clear();
         cartRepository.save(cart);
     }
+    public void updateProductQuantity(String username, Long productId, int quantity) {
+        if (quantity <= 0) {
+            // If quantity is zero or negative, remove the product from cart
+            removeProduct(username, productId);
+            return;
+        }
+
+        Cart cart = getOrCreateCart(username);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Optional<CartItem> existingItemOpt = cartItemRepository.findByCartAndProduct(cart, product);
+        if (existingItemOpt.isPresent()) {
+            CartItem item = existingItemOpt.get();
+            item.setQuantity(quantity);
+            cartItemRepository.save(item);
+        } else {
+            // Optionally add the product if not found (or throw error)
+            throw new RuntimeException("Product not found in cart");
+        }
+    }
+
 }
