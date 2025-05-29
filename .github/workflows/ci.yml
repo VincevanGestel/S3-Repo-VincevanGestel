@@ -2,7 +2,7 @@ name: CI with Docker
 
 on:
   push:
-    branches: [main]
+    branches: [main, Docker3]
   pull_request:
     branches: [main]
 
@@ -10,7 +10,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    steps:            
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -21,22 +21,26 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y docker-compose
 
       - name: Build Docker images via Compose
-        run: docker-compose build
+        run: docker-compose -f docker-compose.ci.yml build
 
-      - name: Start backend, frontend and MySQL services
-        run: docker-compose up -d
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Wait for MySQL to be ready
+      - name: Tag and push backend image
         run: |
-          echo "Waiting for MySQL to accept connections..."
-          for i in {1..30}; do
-            if docker exec backend bash -c "nc -z mysql 3306"; then
-              echo "MySQL is up!"
-              break
-            fi
-            echo "Waiting..."
-            sleep 2
-          done
+          docker tag backend vgestel/backend:latest
+          docker push vgestel/backend:latest
+
+      - name: Tag and push frontend image
+        run: |
+          docker tag frontend vgestel/frontend:latest
+          docker push vgestel/frontend:latest
+
+      - name: Start backend and frontend services
+        run: docker-compose -f docker-compose.ci.yml up -d
 
       - name: Make mvnw executable
         run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
@@ -48,4 +52,4 @@ jobs:
 
       - name: Tear down services
         if: always()
-        run: docker-compose down --remove-orphans
+        run: docker-compose -f docker-compose.ci.yml down --remove-orphans
