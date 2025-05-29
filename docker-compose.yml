@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   backend:
+    image: backend
     build:
       context: "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
       dockerfile: Dockerfile
@@ -10,6 +11,7 @@ services:
       - "8080:8080"
 
   frontend:
+    image: frontend
     build:
       context: "./Front-End/my-vue-app"
       dockerfile: Dockerfile
