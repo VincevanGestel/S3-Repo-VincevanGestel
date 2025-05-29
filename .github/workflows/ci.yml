@@ -2,7 +2,7 @@ name: CI with Docker
 
 on:
   push:
-    branches: [main, Docker3]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -18,43 +18,4 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Set up Docker Compose
-        run: sudo apt-get update && sudo apt-get install -y docker-compose
-
-      - name: Build Docker images via Compose
-        run: docker-compose -f docker-compose.yml build
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Tag and push backend image
-        run: |
-          docker tag backend vgestel/backend:latest
-          docker push vgestel/backend:latest
-
-      - name: Tag and push frontend image
-        run: |
-          docker tag frontend vgestel/frontend:latest
-          docker push vgestel/frontend:latest
-
-      - name: Tag and push second backend image
-        run: |
-          docker tag backend2 vgestel/backend2:latest
-          docker push vgestel/backend2:latest
-
-      - name: Start all services
-        run: docker-compose -f docker-compose.yml up -d
-
-      - name: Make mvnw executable
-        run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
-
-      - name: Run backend tests with H2 (in-memory DB)
-        run: |
-          cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
-          ./mvnw clean test
-
-      - name: Tear down services
-        if: always()
-        run: docker-compose -f docker-compose.yml down --remove-orphans
+        run: sudo apt-get update && sudo apt-get install -y docker-co
