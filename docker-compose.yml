@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   backend:
-    image: backend
     build:
       context: "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
       dockerfile: Dockerfile
@@ -11,10 +10,17 @@ services:
       - "8080:8080"
 
   frontend:
-    image: frontend
     build:
       context: "./Front-End/my-vue-app"
       dockerfile: Dockerfile
     container_name: frontend
     ports:
       - "80:80"
+
+  backend2:
+    build:
+      context: "./Second-Back-End/EmailService"
+      dockerfile: Dockerfile
+    container_name: backend2
+    ports:
+      - "8081:8081"
