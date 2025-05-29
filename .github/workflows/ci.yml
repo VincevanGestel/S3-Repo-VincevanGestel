@@ -39,7 +39,12 @@ jobs:
           docker tag frontend vgestel/frontend:latest
           docker push vgestel/frontend:latest
 
-      - name: Start backend and frontend services
+      - name: Tag and push second backend image
+        run: |
+          docker tag backend2 vgestel/backend2:latest
+          docker push vgestel/backend2:latest
+
+      - name: Start all services
         run: docker-compose -f docker-compose.yml up -d
 
       - name: Make mvnw executable
