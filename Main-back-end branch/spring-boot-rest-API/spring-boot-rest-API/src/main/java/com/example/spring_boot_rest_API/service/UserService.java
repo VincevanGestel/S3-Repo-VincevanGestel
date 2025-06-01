@@ -52,4 +52,12 @@ public class UserService {
 
         return UserMapper.toDTO(savedUser);
     }
+
+    public UserDTO getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return UserMapper.toDTO(user);
+    }
+
 }

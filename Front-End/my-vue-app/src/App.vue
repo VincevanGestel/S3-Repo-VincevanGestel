@@ -16,6 +16,7 @@
     <router-link to="/create">Create Product</router-link> |
     <router-link to="/productlist">Product List</router-link> |
     <router-link to="/create-tag">Create Tag</router-link>
+    <router-link to="/cart" class="cart-link">🛒 Cart</router-link>
   </nav>
 
   <main>
@@ -45,6 +46,11 @@ nav a {
   color: blue;
   font-weight: bold;
 }
+.cart-link {
+  color: green;
+  font-weight: bold;
+}
+
 
 @media (min-width: 1024px) {
   header {
