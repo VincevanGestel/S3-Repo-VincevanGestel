@@ -1,3 +1,36 @@
+<template>
+  <div>
+    <h2>Your Cart</h2>
+    <div v-if="cart?.items?.length">
+      <ul>
+        <li v-for="item in cart.items" :key="item.product.id">
+          {{ item.product.name }} -
+          €{{ (item.product.price * item.quantity).toFixed(2) }}
+
+          <input
+            type="number"
+            min="1"
+            v-model.number="item.quantity"
+            @change="updateQuantity(item.product.id, item.quantity)"
+            style="width: 50px; margin-left: 10px;"
+          />
+
+          <button @click="remove(item.product.id)" style="margin-left: 10px;">
+            Remove
+          </button>
+        </li>
+      </ul>
+
+      <p><strong>Total:</strong> €{{ total.toFixed(2) }}</p>
+      <button @click="clear">Clear Cart</button>
+    </div>
+
+    <div v-else>
+      <p>Your cart is empty.</p>
+    </div>
+  </div>
+</template>
+
 <script>
 import { computed, defineComponent, onMounted, ref } from 'vue';
 import { getCart, removeFromCart, clearCart, updateCartQuantity } from '../services/api';
