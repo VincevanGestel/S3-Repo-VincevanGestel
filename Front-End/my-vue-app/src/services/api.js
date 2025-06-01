@@ -1,5 +1,47 @@
 import axios from './axiosInstance'; // ✅ Use custom instance
 
+//Cart methods
+export const getCart = () => {
+  return axios.get('/cart')
+    .then(res => res.data)
+    .catch(err => {
+      console.error('Error fetching cart:', err);
+      throw err;
+    });
+};
+
+export const addToCart = (productId, quantity = 1) => {
+  return axios.post(`/cart/add?productId=${productId}&quantity=${quantity}`)
+    .catch(err => {
+      console.error('Error adding to cart:', err);
+      throw err;
+    });
+};
+
+export const removeFromCart = (productId) => {
+  return axios.delete(`/cart/remove?productId=${productId}`)
+    .catch(err => {
+      console.error('Error removing from cart:', err);
+      throw err;
+    });
+};
+
+export const clearCart = () => {
+  return axios.delete('/cart/clear')
+    .catch(err => {
+      console.error('Error clearing cart:', err);
+      throw err;
+    });
+};
+
+export const updateCartQuantity = (productId, quantity) => {
+  return axios.put(`/cart/update?productId=${productId}&quantity=${quantity}`)
+    .catch(err => {
+      console.error('Error updating cart quantity:', err);
+      throw err;
+    });
+};
+
 // Tag Methods
 export const createTag = (tagData) => {
   return axios.post('/tags', tagData)
