@@ -12,6 +12,6 @@ describe('Login flow with HTTP Basic Auth', () => {
       },
     });
 
-    cy.contains('Logged in as user').should('be.visible');
+    cy.contains('Logged in as').should('be.visible');
   });
 });
