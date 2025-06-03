@@ -1,38 +1,50 @@
+// src/stores/auth.js
 import { defineStore } from 'pinia';
-import api from '@/plugins/axios';
+import api from '@/services/axiosInstance';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null as null | { username: string, roles: string[] },
+    user: null,
     error: '',
   }),
   actions: {
-    async register(username: string, password: string) {
+    async login(username, password) {
       try {
-        const res = await api.post('/api/auth/register', { username, password });
-        this.user = res.data;
-        this.error = '';
-      } catch (err: any) {
-        this.error = err.response?.data?.message || 'Registration failed';
-      }
-    },
-    async login(username: string, password: string) {
-      const formData = new URLSearchParams();
-      formData.append('username', username);
-      formData.append('password', password);
-      try {
-        await api.post('/login', formData, {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        await api.post('/api/auth/login', {
+          username,
+          password,
+        }, {
+          withCredentials: true,
         });
-        this.user = { username, roles: [] }; // You may want to call a /me endpoint to get full user
+
+        const userRes = await api.get('/api/auth/me', {
+          withCredentials: true,
+        });
+
+        this.user = userRes.data;
         this.error = '';
-      } catch (err: any) {
-        this.error = err.response?.data?.message || 'Login failed';
+      } catch (err) {
+        this.error = (err.response && err.response.data && err.response.data.message) || 'Login failed';
+        this.user = null;
       }
     },
+
     async logout() {
-      await api.post('/logout'); // Spring default
+      try {
+        await api.post('/api/auth/logout', null, { withCredentials: true });
+      } catch {
+        // ignore
+      }
       this.user = null;
-    }
+    },
+
+    async fetchUser() {
+      try {
+        const userRes = await api.get('/api/auth/me', { withCredentials: true });
+        this.user = userRes.data;
+      } catch {
+        this.user = null;
+      }
+    },
   },
 });

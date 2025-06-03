@@ -1,4 +1,23 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue';
+import { useAuthStore } from './stores/auth';
+
+const auth = useAuthStore();
+const loading = ref(true);
+
+// Fetch user on initial load
+auth.fetchUser().finally(() => {
+  loading.value = false;
+});
+
+// You can watch auth.user to do any side effects if needed
+watch(() => auth.user, (newUser) => {
+  if (newUser) {
+    console.log('User logged in:', newUser.username);
+  } else {
+    console.log('User logged out');
+  }
+});
 </script>
 
 <template>
@@ -8,9 +27,12 @@
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
     </div>
+
+    <div v-if="!loading && auth.user" class="user-info">
+      Logged in as {{ auth.user.username }}
+    </div>
   </header>
 
-  <!-- Navigation bar -->
   <nav>
     <router-link to="/">Home</router-link> |
     <router-link to="/create">Create Product</router-link> |
@@ -20,53 +42,6 @@
   </nav>
 
   <main>
-    <TheWelcome />
-    <router-view /> 
+    <router-view />
   </main>
 </template>
-
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  margin: 20px 0;
-  text-align: center;
-}
-
-nav a {
-  margin: 0 15px;
-  text-decoration: none;
-  color: blue;
-  font-weight: bold;
-}
-.cart-link {
-  color: green;
-  font-weight: bold;
-}
-
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
