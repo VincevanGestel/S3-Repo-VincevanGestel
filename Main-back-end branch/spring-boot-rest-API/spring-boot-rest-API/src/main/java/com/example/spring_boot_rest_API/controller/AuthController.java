@@ -10,10 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.security.Principal;
 
@@ -36,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -44,31 +41,20 @@ public class AuthController {
                             loginRequest.getPassword()
                     )
             );
-
-            // ✅ Set authentication in context
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // ✅ Ensure session is created and holds the security context
-            request.getSession(true);
-
+            // If authentication is successful:
             return ResponseEntity.ok(new LoginResponse("Login successful"));
         } catch (AuthenticationException e) {
+            // Authentication failed
             return ResponseEntity.status(401).body(new LoginResponse("Invalid username or password"));
         }
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(HttpServletRequest request) {
-        request.getSession().invalidate(); // ✅ Invalidate session
-        return ResponseEntity.ok("Logged out");
-    }
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
         UserDTO userDTO = userService.getUserByUsername(principal.getName());
         return ResponseEntity.ok(userDTO);
     }

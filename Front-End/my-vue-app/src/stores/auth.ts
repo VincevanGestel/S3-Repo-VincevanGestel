@@ -1,37 +1,27 @@
-// src/stores/auth.js
 import { defineStore } from 'pinia';
 import api from '@/services/axiosInstance';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null,
+    user: null as null | { username: string; roles: string[] },
     error: '',
   }),
   actions: {
-    async login(username, password) {
+    async login(username: string, password: string) {
       try {
-        await api.post('/api/auth/login', {
-          username,
-          password,
-        }, {
-          withCredentials: true,
-        });
-
-        const userRes = await api.get('/api/auth/me', {
-          withCredentials: true,
-        });
-
+        await api.post('/auth/login', { username, password });
+        const userRes = await api.get('/auth/me');
         this.user = userRes.data;
         this.error = '';
-      } catch (err) {
-        this.error = (err.response && err.response.data && err.response.data.message) || 'Login failed';
+      } catch (err: any) {
+        this.error = err.response?.data?.message || 'Login failed';
         this.user = null;
       }
     },
 
     async logout() {
       try {
-        await api.post('/api/auth/logout', null, { withCredentials: true });
+        await api.post('/auth/logout');
       } catch {
         // ignore
       }
@@ -40,7 +30,7 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchUser() {
       try {
-        const userRes = await api.get('/api/auth/me', { withCredentials: true });
+        const userRes = await api.get('/auth/me');
         this.user = userRes.data;
       } catch {
         this.user = null;
