@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll() //Might want to change later
                         .anyRequest().authenticated()
                 )
                 // REMOVE formLogin(), using custom /api/auth/login controller

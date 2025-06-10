@@ -1,8 +1,13 @@
 <template>
   <div class="chat">
     <h2>Chat</h2>
+
     <div class="messages">
-      <div v-for="(msg, index) in messages" :key="index" class="message">
+      <div
+        v-for="(msg, index) in messages"
+        :key="index"
+        class="message"
+      >
         <strong>{{ msg.sender }}:</strong> {{ msg.content }}
         <small class="timestamp">{{ formatTimestamp(msg.timestamp) }}</small>
       </div>
@@ -33,28 +38,35 @@ export default {
   },
   methods: {
     connect() {
-      // Change this to your backend WebSocket URL
-      const socket = new SockJS('http://localhost:8080/ws'); // Adjust if needed
+      const socket = new SockJS('http://localhost:8080/ws');
       this.client = new Client({
         webSocketFactory: () => socket,
-        debug: (str) => console.log(str),
+        debug: (str) => console.log('STOMP Debug:', str),
         reconnectDelay: 5000,
       });
 
       this.client.onConnect = () => {
-        console.log('Connected to WebSocket');
+        console.log('✅ Connected to WebSocket server');
 
-        // Subscribe to message topic
         this.client.subscribe('/topic/messages', (msg) => {
-          const body = JSON.parse(msg.body);
-          this.messages.push(body);
+          console.log('📩 Received raw message:', msg.body);
+          try {
+            const body = JSON.parse(msg.body);
+            this.messages.push(body);
+          } catch (err) {
+            console.error('❌ Failed to parse message:', err);
+          }
         });
 
-        // Send join message with username
+        // Send join info
         this.client.publish({
           destination: '/app/join',
           body: JSON.stringify({ username: this.username, password: '' }),
         });
+      };
+
+      this.client.onStompError = (frame) => {
+        console.error('STOMP Error:', frame);
       };
 
       this.client.activate();
@@ -65,6 +77,7 @@ export default {
         sender: this.username,
         content: this.message.trim(),
       };
+      console.log('📤 Sending message:', chatMessage);
       this.client.publish({
         destination: '/app/chat',
         body: JSON.stringify(chatMessage),
@@ -73,11 +86,14 @@ export default {
     },
     formatTimestamp(timestamp) {
       if (!timestamp) return '';
-      return new Date(timestamp).toLocaleTimeString();
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        return '(invalid time)';
+      }
+      return date.toLocaleTimeString();
     },
   },
   mounted() {
-    // Ask for username or get from your app state
     this.username = prompt('Enter your username') || 'Anonymous';
     this.connect();
   },
@@ -101,13 +117,24 @@ export default {
   border: 1px solid #ddd;
   margin-bottom: 1rem;
   padding: 0.5rem;
+  background: #f9f9f9;
 }
 .message {
   margin-bottom: 0.5rem;
+  line-height: 1.3;
 }
 .timestamp {
   font-size: 0.7rem;
   color: gray;
+  margin-left: 0.5rem;
+}
+input {
+  width: calc(100% - 60px);
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+button {
+  padding: 0.5rem 1rem;
   margin-left: 0.5rem;
 }
 </style>

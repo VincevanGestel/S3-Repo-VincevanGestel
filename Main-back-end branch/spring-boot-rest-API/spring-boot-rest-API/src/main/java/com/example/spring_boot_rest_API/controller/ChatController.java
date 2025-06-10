@@ -18,7 +18,7 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
     private final UserService userService;
     private final MessageService messageService;
-
+    /*
     @MessageMapping("/chat")
     public void handleChat(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
         // Retrieve username from WebSocket session attributes
@@ -36,6 +36,13 @@ public class ChatController {
 
         // Broadcast saved message to subscribers
         messagingTemplate.convertAndSend("/topic/messages", savedMessage);
+    }
+    */
+    @MessageMapping("/chat")
+    public void handleChat(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
+        // TEMP: skip checking session auth
+        chatMessage.setSender(chatMessage.getSender());
+        messagingTemplate.convertAndSend("/topic/messages", chatMessage);
     }
 
     @MessageMapping("/join")
