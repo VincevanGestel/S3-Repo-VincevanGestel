@@ -27,7 +27,7 @@ public class ChatController {
             throw new RuntimeException("User not authenticated");
         }
 
-        User sender = userService.getUserByUsername(username)
+        User sender = userService.findEntityByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Save chat message, associate sender username
@@ -46,7 +46,7 @@ public class ChatController {
         }
 
         // Find existing user or handle user creation logic
-        User user = userService.getUserByUsername(username)
+        User user = userService.findEntityByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Store username in WebSocket session

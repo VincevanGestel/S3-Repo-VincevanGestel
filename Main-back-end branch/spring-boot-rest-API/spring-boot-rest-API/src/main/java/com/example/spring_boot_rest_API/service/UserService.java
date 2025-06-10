@@ -59,5 +59,9 @@ public class UserService {
 
         return UserMapper.toDTO(user);
     }
+    //for chat purposes :)
+    public Optional<User> findEntityByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 
 }
