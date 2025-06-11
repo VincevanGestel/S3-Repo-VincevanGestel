@@ -60,10 +60,13 @@ jobs:
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw org.owasp:dependency-check-maven:check
 
-      # --- OWASP ZAP Scan (Frontend) ---
+      # ---- ZAP security scans ----
+      - name: Prepare report folder
+        run: mkdir -p zap-reports
+
       - name: Run OWASP ZAP Scan - Frontend
         run: |
-          docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+          docker run --rm -v ${{ github.workspace }}/zap-reports:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://localhost \
             -r zap-frontend.html || true
 
@@ -71,12 +74,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-frontend-report
-          path: zap-frontend.html
+          path: zap-reports/zap-frontend.html
 
-      # --- OWASP ZAP Scan (Backend) ---
       - name: Run OWASP ZAP Scan - Backend
         run: |
-          docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+          docker run --rm -v ${{ github.workspace }}/zap-reports:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://localhost:8080 \
             -r zap-backend.html || true
 
@@ -84,7 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-backend-report
-          path: zap-backend.html
+          path: zap-reports/zap-backend.html
 
       - name: Tear down services
         if: always()
