@@ -60,23 +60,24 @@ jobs:
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw org.owasp:dependency-check-maven:check
 
-      # ZAP Scans
-      - name: Create ZAP report directory
+      - name: Create report output directory
         run: mkdir -p zap-reports
 
       - name: Run OWASP ZAP scan on backend
         run: |
-          docker run --network="host" -v "${{ github.workspace }}/zap-reports:/zap/wrk" ghcr.io/zaproxy/zap-stable:latest zap-baseline.py \
+          docker run --network="host" \
+            -v "${{ github.workspace }}/zap-reports:/zap/wrk" \
+            owasp/zap2docker-stable zap-baseline.py \
             -t http://localhost:8080 \
-            -r zap-backend.html || true
-          mv zap-backend.html zap-reports/zap-backend.html || echo "No backend report generated"
+            -r /zap/wrk/zap-backend.html || true
 
       - name: Run OWASP ZAP scan on frontend
         run: |
-          docker run --network="host" -v "${{ github.workspace }}/zap-reports:/zap/wrk" ghcr.io/zaproxy/zap-stable:latest zap-baseline.py \
+          docker run --network="host" \
+            -v "${{ github.workspace }}/zap-reports:/zap/wrk" \
+            owasp/zap2docker-stable zap-baseline.py \
             -t http://localhost \
-            -r zap-frontend.html || true
-          mv zap-frontend.html zap-reports/zap-frontend.html || echo "No frontend report generated"
+            -r /zap/wrk/zap-frontend.html || true
 
       - name: List ZAP report directory contents
         run: ls -lah zap-reports
