@@ -60,33 +60,32 @@ jobs:
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw org.owasp:dependency-check-maven:check
 
-      # ---- ZAP security scans ----
-      - name: Prepare report folder
+      # ZAP Scans
+      - name: Create ZAP report directory
         run: mkdir -p zap-reports
 
-      - name: Run OWASP ZAP Scan - Frontend
+      - name: Run OWASP ZAP scan on backend
         run: |
-          docker run --rm -v ${{ github.workspace }}/zap-reports:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://localhost \
-            -r zap-frontend.html || true
-
-      - name: Upload ZAP Frontend Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-frontend-report
-          path: zap-reports/zap-frontend.html
-
-      - name: Run OWASP ZAP Scan - Backend
-        run: |
-          docker run --rm -v ${{ github.workspace }}/zap-reports:/zap/wrk ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+          docker run --network="host" -v "${{ github.workspace }}/zap-reports:/zap/wrk" ghcr.io/zaproxy/zap-stable:latest zap-baseline.py \
             -t http://localhost:8080 \
             -r zap-backend.html || true
+          mv zap-backend.html zap-reports/zap-backend.html || echo "No backend report generated"
 
-      - name: Upload ZAP Backend Report
+      - name: Run OWASP ZAP scan on frontend
+        run: |
+          docker run --network="host" -v "${{ github.workspace }}/zap-reports:/zap/wrk" ghcr.io/zaproxy/zap-stable:latest zap-baseline.py \
+            -t http://localhost \
+            -r zap-frontend.html || true
+          mv zap-frontend.html zap-reports/zap-frontend.html || echo "No frontend report generated"
+
+      - name: List ZAP report directory contents
+        run: ls -lah zap-reports
+
+      - name: Upload ZAP reports
         uses: actions/upload-artifact@v4
         with:
-          name: zap-backend-report
-          path: zap-reports/zap-backend.html
+          name: zap-reports
+          path: zap-reports/
 
       - name: Tear down services
         if: always()
