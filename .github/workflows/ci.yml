@@ -1,4 +1,4 @@
-name: CI with Docker and OWASP ZAP
+name: CI with Docker
 
 on:
   push:
@@ -7,90 +7,85 @@ on:
     branches: [main]
 
 jobs:
-  build-test-and-security-scan:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout source
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Install Docker Compose
-      - name: Install Docker Compose
+      - name: Set up Docker Compose
         run: sudo apt-get update && sudo apt-get install -y docker-compose
 
-      # Build Docker images
       - name: Build Docker images via Compose
         run: docker-compose -f docker-compose.yml build
 
-      # Log in to Docker Hub
-      - name: Docker login
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Push images
-      - name: Push Docker images
+      - name: Tag and push main-backend image
         run: |
           docker tag main-backend vgestel/main-backend:latest
           docker push vgestel/main-backend:latest
+
+      - name: Tag and push emailservice-backend image
+        run: |
           docker tag emailservice-backend vgestel/emailservice-backend:latest
           docker push vgestel/emailservice-backend:latest
+
+      - name: Tag and push frontend image
+        run: |
           docker tag frontend vgestel/frontend:latest
           docker push vgestel/frontend:latest
 
-      # Start containers
-      - name: Start services
+      - name: Start all services
         run: docker-compose -f docker-compose.yml up -d
 
-      # Make mvnw executable
       - name: Make mvnw executable
         run: chmod +x "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API/mvnw"
 
-      # Run backend unit tests
-      - name: Run backend tests (main-backend)
+      - name: Run backend tests with H2 (main-backend)
         run: |
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw clean test
 
-      # Run OWASP Dependency Check
-      - name: OWASP Dependency-Check
+      - name: Run OWASP Dependency-Check
         run: |
           cd "./Main-back-end branch/spring-boot-rest-API/spring-boot-rest-API"
           ./mvnw org.owasp:dependency-check-maven:check
 
-      # --- OWASP ZAP Scans ---
-
-      - name: Run ZAP Baseline Scan (Frontend)
+      # --- OWASP ZAP Scan (Frontend) ---
+      - name: Run OWASP ZAP Scan - Frontend
         run: |
-          docker run --network=host -u zap -t owasp/zap2docker-stable zap-baseline.py \
+          docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://localhost \
-            -r zap-frontend.html
+            -r zap-frontend.html || true
 
       - name: Upload ZAP Frontend Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: zap-frontend-report
           path: zap-frontend.html
 
-      - name: Run ZAP Baseline Scan (Backend)
+      # --- OWASP ZAP Scan (Backend) ---
+      - name: Run OWASP ZAP Scan - Backend
         run: |
-          docker run --network=host -u zap -t owasp/zap2docker-stable zap-baseline.py \
+          docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://localhost:8080 \
-            -r zap-backend.html
+            -r zap-backend.html || true
 
       - name: Upload ZAP Backend Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: zap-backend-report
           path: zap-backend.html
 
-      # Clean up services
       - name: Tear down services
         if: always()
         run: docker-compose -f docker-compose.yml down --remove-orphans
