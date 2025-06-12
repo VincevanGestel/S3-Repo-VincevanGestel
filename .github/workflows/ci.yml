@@ -2,7 +2,7 @@ name: CI with Docker
 
 on:
   push:
-    branches: [main, Docker3]
+    branches: [main]
   pull_request:
     branches: [main]
 
