@@ -1,5 +1,6 @@
 package com.example.spring_boot_rest_API.controller;
 
+import com.example.spring_boot_rest_API.service.NotificationService;
 import com.example.spring_boot_rest_API.service.ProductService;
 import com.example.spring_boot_rest_API.dto.ProductDTO;
 import jakarta.validation.Valid;
@@ -8,24 +9,31 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @CrossOrigin(origins = "http://localhost:5173") //temporary CORS fix (Just for testing)
 @RestController //Postman: http://localhost:8080/api/products
 @RequestMapping("/api")
 public class ProductController
 {
-    private final ProductService productService;    
+    private final ProductService productService;
+    private final NotificationService notificationService;
 
-    public ProductController(ProductService productService)
-    {
+    public ProductController(ProductService productService, NotificationService notificationService) {
         this.productService = productService;
+        this.notificationService = notificationService;
     }
 
-    @PostMapping("/products")  // ✅ FIXED typo here
-    public ResponseEntity<ProductDTO> saveProduct(@Valid @RequestBody ProductDTO productDto)
-    {
-        return ResponseEntity.ok(productService.saveProduct(productDto));
+
+    @PostMapping("/products")
+    public CompletableFuture<ResponseEntity<ProductDTO>> saveProduct(@Valid @RequestBody ProductDTO productDto) {
+        return CompletableFuture.supplyAsync(() -> {
+            ProductDTO saved = productService.saveProduct(productDto);  // DB save
+            notificationService.notifyProduct(saved);                  // fire-and-forget async
+            return ResponseEntity.ok(saved);
+        });
     }
+
 
     @GetMapping("/products")
     public List<ProductDTO> getAllProducts()

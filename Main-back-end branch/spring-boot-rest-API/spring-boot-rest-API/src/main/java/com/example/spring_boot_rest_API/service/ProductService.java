@@ -31,13 +31,9 @@ public class ProductService {
         List<Tag> tags = mapTagsByIds(productDto.getTagIds());
         Product product = ProductMapper.toEntity(productDto, tags);
         Product savedProduct = productRepository.save(product);
-
-        //notification
-        ProductDTO savedDto = ProductMapper.toDTO(savedProduct);
-        notificationService.notifyProduct(savedDto);
-
-        return savedDto;
+        return ProductMapper.toDTO(savedProduct);
     }
+
 
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll().stream()
