@@ -4,12 +4,12 @@
     <form @submit.prevent="register">
       <label for="username">Username:</label>
       <input type="text" id="username" v-model="username" required />
-
+      
       <label for="password">Password:</label>
       <input type="password" id="password" v-model="password" required />
-
+      
       <button type="submit">Register</button>
-
+      
       <p v-if="successMessage" style="color: green">{{ successMessage }}</p>
       <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
     </form>
@@ -51,8 +51,15 @@ export default defineComponent({
         }, 1500);
       } catch (error: any) {
         console.error('Registration failed:', error);
-        errorMessage.value =
-          error.response?.data?.message || 'Registration failed';
+
+        if (error.response?.status === 400 && error.response?.data) {
+          // Extract all validation error messages from backend response and join them
+          const errors = error.response.data;
+          errorMessage.value = Object.values(errors).join('; ');
+        } else {
+          errorMessage.value = error.response?.data?.message || 'Registration failed';
+        }
+
         successMessage.value = '';
       }
     };

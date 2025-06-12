@@ -1,5 +1,5 @@
 // src/main.js
-
+window.global = window; 
 import './assets/main.css'  // Your main stylesheet
 import { createApp } from 'vue'
 import App from './App.vue'

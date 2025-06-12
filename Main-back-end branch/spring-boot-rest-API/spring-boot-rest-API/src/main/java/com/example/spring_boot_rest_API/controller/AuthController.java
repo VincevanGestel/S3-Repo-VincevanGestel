@@ -4,6 +4,7 @@ import com.example.spring_boot_rest_API.dto.LoginRequest;
 import com.example.spring_boot_rest_API.dto.LoginResponse;
 import com.example.spring_boot_rest_API.dto.UserDTO;
 import com.example.spring_boot_rest_API.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,7 +28,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> registerUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserDTO userDTO) {
+
         UserDTO registeredUser = userService.registerUser(userDTO);
         return ResponseEntity.ok(registeredUser);
     }
