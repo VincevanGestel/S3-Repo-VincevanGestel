@@ -17,14 +17,6 @@
 
       <button type="submit">Create Product</button>
     </form>
-
-    <!-- Debug display to see loaded tags -->
-    <div v-if="availableTags.length">
-      <h3>Loaded Tags (debug):</h3>
-      <ul>
-        <li v-for="tag in availableTags" :key="tag.id">{{ tag.name }}</li>
-      </ul>
-    </div>
   </div>
 </template>
 
