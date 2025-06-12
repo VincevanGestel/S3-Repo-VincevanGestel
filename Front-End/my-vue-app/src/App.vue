@@ -50,7 +50,8 @@ watch(() => auth.user, (newUser) => {
     <router-link to="/create">Create Product</router-link> |
     <router-link to="/productlist">Product List</router-link> |
     <router-link to="/create-tag">Create Tag</router-link> |
-    <router-link to="/cart" class="cart-link">🛒 Cart</router-link>
+    <router-link to="/cart" class="cart-link">🛒 Cart</router-link> |
+    <router-link to="/chat">Chat</router-link> 
   </nav>
 
   <main>

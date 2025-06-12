@@ -33,7 +33,7 @@ public class AuthController {
         UserDTO registeredUser = userService.registerUser(userDTO);
         return ResponseEntity.ok(registeredUser);
     }
-
+/* //not currently using this login
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         try {
@@ -50,7 +50,7 @@ public class AuthController {
             return ResponseEntity.status(401).body(new LoginResponse("Invalid username or password"));
         }
     }
-
+*/
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Principal principal) {

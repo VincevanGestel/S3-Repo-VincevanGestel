@@ -3,11 +3,7 @@
     <h2>Chat</h2>
 
     <div class="messages">
-      <div
-        v-for="(msg, index) in messages"
-        :key="index"
-        class="message"
-      >
+      <div v-for="(msg, index) in messages" :key="index" class="message">
         <strong>{{ msg.sender }}:</strong> {{ msg.content }}
         <small class="timestamp">{{ formatTimestamp(msg.timestamp) }}</small>
       </div>
@@ -25,6 +21,7 @@
 <script>
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { useAuthStore } from '../stores/auth';
 
 export default {
   name: 'Chat',
@@ -33,10 +30,24 @@ export default {
       client: null,
       messages: [],
       message: '',
-      username: null,
+      username: 'Anonymous',
+      auth: useAuthStore(),
     };
   },
   methods: {
+    async initUserAndConnect() {
+      try {
+        await this.auth.fetchUser();
+        if (this.auth.user && this.auth.user.username) {
+          this.username = this.auth.user.username;
+        }
+      } catch (error) {
+        console.warn('🔒 Not logged in, using Anonymous');
+        // username remains "Anonymous"
+      }
+
+      this.connect();
+    },
     connect() {
       const socket = new SockJS('http://localhost:8080/ws');
       this.client = new Client({
@@ -49,7 +60,6 @@ export default {
         console.log('✅ Connected to WebSocket server');
 
         this.client.subscribe('/topic/messages', (msg) => {
-          console.log('📩 Received raw message:', msg.body);
           try {
             const body = JSON.parse(msg.body);
             this.messages.push(body);
@@ -58,10 +68,9 @@ export default {
           }
         });
 
-        // Send join info
         this.client.publish({
           destination: '/app/join',
-          body: JSON.stringify({ username: this.username, password: '' }),
+          body: JSON.stringify({ username: this.username }),
         });
       };
 
@@ -77,7 +86,6 @@ export default {
         sender: this.username,
         content: this.message.trim(),
       };
-      console.log('📤 Sending message:', chatMessage);
       this.client.publish({
         destination: '/app/chat',
         body: JSON.stringify(chatMessage),
@@ -87,15 +95,11 @@ export default {
     formatTimestamp(timestamp) {
       if (!timestamp) return '';
       const date = new Date(timestamp);
-      if (isNaN(date.getTime())) {
-        return '(invalid time)';
-      }
-      return date.toLocaleTimeString();
+      return isNaN(date.getTime()) ? '(invalid time)' : date.toLocaleTimeString();
     },
   },
-  mounted() {
-    this.username = prompt('Enter your username') || 'Anonymous';
-    this.connect();
+  async mounted() {
+    await this.initUserAndConnect();
   },
   beforeUnmount() {
     if (this.client) {
