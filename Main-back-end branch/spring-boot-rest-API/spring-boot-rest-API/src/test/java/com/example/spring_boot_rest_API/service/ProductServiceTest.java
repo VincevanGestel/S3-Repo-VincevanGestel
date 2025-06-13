@@ -61,6 +61,11 @@ public class ProductServiceTest {
     }
 
     @Test
+    void failingTest()
+    {
+        assertEquals(1,0);
+    }
+    @Test
     void testSaveProduct() {
         when(tagRepository.findAllById(tagIds)).thenReturn(tagList);
         when(productRepository.save(any(Product.class))).thenReturn(product);
