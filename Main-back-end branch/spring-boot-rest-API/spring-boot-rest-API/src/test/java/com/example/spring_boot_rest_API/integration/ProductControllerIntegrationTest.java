@@ -83,10 +83,14 @@ public class ProductControllerIntegrationTest {
         ProductDTO dto = buildProductDTO("Test Laptop", 1200.0);
         String json = objectMapper.writeValueAsString(dto);
 
-        mockMvc.perform(post("/api/products")
+        var mvcResult = mockMvc.perform(post("/api/products")
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test Laptop"))
                 .andExpect(jsonPath("$.price").value(1200.0));
@@ -95,12 +99,20 @@ public class ProductControllerIntegrationTest {
     @Test
     void shouldReturnProductInListAfterCreation() throws Exception {
         ProductDTO dto = buildProductDTO("Phone", 699.0);
-        mockMvc.perform(post("/api/products")
+        String json = objectMapper.writeValueAsString(dto);
+
+        // POST with async handling
+        var mvcResult = mockMvc.perform(post("/api/products")
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(json))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk());
 
+        // GET is synchronous, no async needed
         mockMvc.perform(get("/api/products")
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isOk())
@@ -112,15 +124,21 @@ public class ProductControllerIntegrationTest {
         ProductDTO dto = buildProductDTO("Phone", 699.99);
         String json = objectMapper.writeValueAsString(dto);
 
-        String response = mockMvc.perform(post("/api/products")
+        // Async POST to create product
+        var mvcResult = mockMvc.perform(post("/api/products")
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        String response = mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         ProductDTO savedProduct = objectMapper.readValue(response, ProductDTO.class);
 
+        // GET is synchronous
         mockMvc.perform(get("/api/products/" + savedProduct.getId())
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isOk())
@@ -133,10 +151,15 @@ public class ProductControllerIntegrationTest {
         ProductDTO dto = buildProductDTO("Monitor", 200.0);
         String postJson = objectMapper.writeValueAsString(dto);
 
-        String response = mockMvc.perform(post("/api/products")
+        // Async POST to create product
+        var mvcResult = mockMvc.perform(post("/api/products")
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(postJson))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        String response = mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -146,6 +169,7 @@ public class ProductControllerIntegrationTest {
         saved.setDescription("Updated description");
         String putJson = objectMapper.writeValueAsString(saved);
 
+        // PUT is synchronous
         mockMvc.perform(put("/api/products/" + saved.getId())
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -160,19 +184,26 @@ public class ProductControllerIntegrationTest {
         ProductDTO dto = buildProductDTO("Tablet", 300.0);
         String json = objectMapper.writeValueAsString(dto);
 
-        String response = mockMvc.perform(post("/api/products")
+        // Async POST to create product
+        var mvcResult = mockMvc.perform(post("/api/products")
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        String response = mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         ProductDTO saved = objectMapper.readValue(response, ProductDTO.class);
 
+        // DELETE is synchronous
         mockMvc.perform(delete("/api/products/" + saved.getId())
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isNoContent());
 
+        // GET is synchronous
         mockMvc.perform(get("/api/products/" + saved.getId())
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isNotFound());
@@ -180,6 +211,7 @@ public class ProductControllerIntegrationTest {
 
     @Test
     void shouldReturn404ForNonExistentProduct() throws Exception {
+        // GET is synchronous
         mockMvc.perform(get("/api/products/999999")
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isNotFound());
@@ -214,15 +246,21 @@ public class ProductControllerIntegrationTest {
         ProductDTO dto = buildProductDTO("Tagged Product", 250.0);
         String json = objectMapper.writeValueAsString(dto);
 
-        String response = mockMvc.perform(post("/api/products")
+        // Async POST to create product
+        var mvcResult = mockMvc.perform(post("/api/products")
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        String response = mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         ProductDTO saved = objectMapper.readValue(response, ProductDTO.class);
 
+        // GET is synchronous
         mockMvc.perform(get("/api/products/" + saved.getId())
                         .with(httpBasic(TEST_USERNAME, TEST_PASSWORD)))
                 .andExpect(status().isOk())
