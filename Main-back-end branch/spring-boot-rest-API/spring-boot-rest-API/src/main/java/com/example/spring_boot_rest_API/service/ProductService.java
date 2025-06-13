@@ -17,14 +17,12 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final TagRepository tagRepository;
-    private final NotificationService notificationService;
 
     public ProductService(ProductRepository productRepository,
                           TagRepository tagRepository,
                           NotificationService notificationService) {
         this.productRepository = productRepository;
         this.tagRepository = tagRepository;
-        this.notificationService = notificationService;
     }
 
     public ProductDTO saveProduct(ProductDTO productDto) {
