@@ -10,11 +10,11 @@ COPY . .
 # Make mvnw executable
 RUN chmod +x mvnw
 
-# Pre-build (skip tests for faster builds, run tests in CI if needed)
+# Optionally pre-build (can skip tests here or run tests in CI)
 RUN ./mvnw clean package -DskipTests
 
 # Expose port your Spring Boot app runs on
 EXPOSE 8080
 
-# Default command: run the Spring Boot app via the packaged jar
-CMD ["java", "-jar", "target/your-app.jar"]
+# Default command: run the Spring Boot app via mvnw
+CMD ["./mvnw", "spring-boot:run"]
